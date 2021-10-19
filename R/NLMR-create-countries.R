@@ -28,13 +28,13 @@ writeRaster(louland$lc      , "results/louland/lc.tiff"      , overwrite=T)
 writeRaster(louland$lc_map  , "results/louland/lc_map.tiff"  , overwrite=T)
 
 ## Create image
-png(filename = paste0("results/louland/louland.png"), width = 800, height = 800)
+png(filename = paste0("results/louland/newland.png"), width = 800, height = 800)
 make_3d(.country = louland)
 render_snapshot()
 dev.off()
 
 ## Create video
-render_movie(filename = paste0("results/louland/louland"))
+render_movie(filename = paste0("results/louland/newland"))
 rgl::rgl.close()
 
 ## Recreate parameters
