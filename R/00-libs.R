@@ -17,6 +17,7 @@ library(rayshader)
 library(rgl)
 library(plotly)
 library(scales)
+library(smoothr)
 
 ## Tidy
 library(ggpubr)

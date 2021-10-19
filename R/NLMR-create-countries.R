@@ -20,6 +20,8 @@ sea   <-  0.2
 ## Create raster files
 louland <- create_newland(.seed = 11, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
 
+
+## Write raster data 
 writeRaster(louland$topo    , "results/louland/topo.tiff"    , overwrite=T)
 writeRaster(louland$topo_map, "results/louland/topo_map.tiff", overwrite=T)
 writeRaster(louland$lc      , "results/louland/lc.tiff"      , overwrite=T)
@@ -35,48 +37,84 @@ dev.off()
 render_movie(filename = paste0("results/louland/louland"))
 rgl::rgl.close()
 
+## Recreate parameters
+louland_param <- tibble(
+  lc_id = c(   5,    4,    3,    2),
+  lc    = c("EV", "MD", "DD", "PL"),
+  w     = c(0.11, 0.23, 0.08, 0.21)
+) %>%
+  bind_rows(list(lc_id = 1, lc = "NF", w = 1 - sum(.$w))) %>%
+  mutate(hex = c("#00743f", "#379683", "#5cdb95", "#8ee4af", "#edf5e1")) %>% 
+  bind_rows(list(lc_id = c(0, 6), lc = c("WA", "MG"), w = c(0, 0), hex = c("#73c2fb", "#012172"))) %>%
+  arrange(lc_id) %>%
+  bind_cols(lc_name = c("Water", "Non-forest", "Plantation", "Deciduous", "Mixed Deciduous", "Evergreen", "Mangrove"))
 
 ## Create land cover shapefile
-sf_louland_lc <- st_as_stars(deratify(louland$lc)) %>%
+sf_lc <- st_as_stars(deratify(louland$lc)) %>%
   st_as_sf(., as_points = FALSE, merge = TRUE) %>%
-  st_make_valid() %>%
+  st_set_crs(st_crs(32727)) %>%
+  mutate(id = 1:nrow(.)) %>%
+  st_cast("MULTIPOLYGON") %>%
+  st_make_valid()
+
+table(st_is_valid(sf_lc))
+st_is_valid(sf_lc, reason = TRUE)
+
+sf_lc3 <- sf_lc %>%
+  filter(lc != "WA" | id == 145) %>%
+  smoothr::smooth(method = "ksmooth", smoothness = 1.5) %>%
   mutate(id = 1:nrow(.))
 
-## Create country boundaries
-sf_louland_lc %>% 
-  filter(lc == "WA") %>% 
-  ggplot() +
-  geom_sf(aes(fill = as.character(id)))
+table(st_is_valid(sf_lc3))
+st_is_valid(sf_lc3, reason = TRUE)
+ 
+sf_lc4 <- sf_lc3 %>%
+  st_make_valid() %>%
+  st_cast("POLYGON")
 
-sf_louland <- sf_louland_lc %>%
-  filter(lc != "WA" | id == 145) %>% 
-  st_union()
+table(st_is_valid(sf_lc4))
+st_is_valid(sf_lc4, reason = TRUE)
+
+sf_lc5 <- sf_lc4 %>%
+  left_join(louland_param %>% select(lc_id, lc, lc_name), by = "lc") %>% 
+  mutate(lc = forcats::fct_reorder(lc, lc_id)) %>%
+  select(id, lc_id, lc, lc_name)
+
+
+## Create country boundaries
+sf_admin <- sf_lc5 %>%
+  st_buffer(100) %>%
+  st_union(by_feature = FALSE)
+
+st_is_valid(sf_admin)
+
+## Create topo lines
+topo_seq <- seq(from = round(minValue(louland$topo)), to = round(maxValue(louland$topo)), by = 100)
+sf_topo <- louland$topo %>% st_as_stars() %>% st_contour(breaks = topo_seq)
 
 ## Write shapefile
 dir.create('results/louland/lc', showWarnings = F)
 dir.create('results/louland/adm', showWarnings = F)
-st_write(sf_louland_lc, "results/louland/lc/lc.shp", delete_dsn = T)
-st_write(sf_louland, "results/louland/adm/adm.shp", delete_dsn = T)
-
-ggplot() +
-  geom_sf(data = sf_louland_lc, aes(fill = lc)) +
-  scale_fill_manual(values = c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")) +
-  geom_sf(data = sf_louland, fill = NA, size = 1.5, color = "red")
+dir.create('results/louland/topo', showWarnings = F)
+st_write(sf_lc5, "results/louland/lc/lc.shp", delete_dsn = T)
+st_write(sf_admin, "results/louland/adm/adm.shp", delete_dsn = T)
+st_write(sf_topo, "results/louland/topo/topo.shp", delete_dsn = T)
 
 
 ## Mapping 
-# pal <- c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")
-# pal2 <- c("#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")
-# 
-# ggplot() +
-#   geom_sf(data = sf_louland_lc, aes(fill = lc), col = NA) +
-#   scale_fill_manual(values = pal) +
-#   geom_sf(data = sf_louland, fill = NA, col = "black", size = 1) +
-#   theme_void()
-# 
-# tmap_mode("view")
-# tm_shape(sf_louland_lc %>% filter(lc != "WA")) + tm_polygons(col = "lc", palette = pal2, border.col = NULL) +
-# tm_shape(sf_louland) + tm_borders(lwd = 2)
+pal <- c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")
+
+
+ggplot() +
+  geom_sf(data = sf_lc, aes(fill = lc)) +
+  scale_fill_manual(values = c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")) +
+  geom_sf(data = sf_admin, fill = NA, size = 1, color = "red")
+
+
+tmap_mode("view")
+tmap_options(check.and.fix = TRUE)
+tm_shape(sf_lc5) + tm_polygons(col = "lc", palette = pal, border.col = NULL) +
+tm_shape(sf_admin) + tm_borders(lwd = 2)
 
 
 
