@@ -20,14 +20,14 @@ table(tt$iso)
 
 ## Land use remade categories
 lu_harmo_class <- tibble(
-  lu_harmo      = c("Evergreen", "Mixed Deciduous", "Deciduous", "Plantation", "Mangrove"),
-  lu_harmo_num  = 1:5,
-  lu_harmo_code = c("EV", "MD", "DE", "PL", "MG")
+  lu_harmo      = c("Evergreen", "Mixed Deciduous", "Deciduous", "Plantation", "Mangrove", "Other woodland"),
+  lu_harmo_num  = 1:6,
+  lu_harmo_code = c("EV", "MD", "DE", "PL", "MG", "WL")
 )
 
 
-## Join tract coordinates with newplot
-newplot04 <- newplot02 %>%
+## Create plots and LCC objects for forest
+newplot04tmp1 <- newplot02 %>%
   select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) %>%
   left_join(newtract03, by = c("iso", "tract_id")) %>%
   filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino")) %>%
@@ -65,6 +65,34 @@ newplot04 <- newplot02 %>%
   left_join(lu_harmo_class, by = c("lu_harmo2" = "lu_harmo"))
 
 
+## Create plots and LCC objects for woodlands
+newplot04tmp2 <- newplot02 %>%
+  select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) %>%
+  left_join(newtract03, by = c("iso", "tract_id")) %>%
+  filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino", negate = T)) %>%
+  filter(str_detect(string = lus, pattern = "wood|con arboles|with trees")) %>%
+  mutate(
+    lu_mg = 0,
+    lu_pl = 0,
+    lu_co = 0,
+    lu_ev = 0,
+    lu_de = 0,
+    lu_pr = 0, 
+    lu_se = 0,
+    lu_ds = 0,
+    lu_op = 0,
+    lu_evde = lu_ev + lu_de,
+    lu_prse = lu_pr + lu_se,
+    lu_dsop = lu_ds + lu_op,
+    lu_harmo1 = "Other woodland",
+    lu_harmo2 = "Other woodland"
+  ) %>%
+  left_join(lu_harmo_class, by = c("lu_harmo2" = "lu_harmo"))
+
+
+## Combine forest and woodland plots
+newplot04 <- bind_rows(newplot04tmp1, newplot04tmp2)
+
 ## Checks
 table(newplot04$lu_harmo2)
 
@@ -83,4 +111,4 @@ length(unique(newplot04$plot_id)) == length(unique(paste0(newplot04$plot_id, "_"
 
 
 ## Remove temp objects
-rm(tt_forest, tt_nonforest)
+rm(tt_forest, tt_nonforest, newplot04tmp1, newplot04tmp2)

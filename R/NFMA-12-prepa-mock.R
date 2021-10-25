@@ -21,7 +21,7 @@ count_gn <- length(unique(mock_tmp$accepted_genus))
 count_sp <- length(unique(mock_tmp$accepted_epithet))
 vowels <- c("a", "e", "i", "o", "u")
 
-set.seed(36)
+set.seed(20)
 uuid_gn <- tibble(
   letter   = sample(letters, size = count_gn * 8, replace = T), 
   word     = paste0("n", rep(1:8, count_gn)), 
@@ -60,7 +60,7 @@ ano_species <- mock_tmp %>%
   left_join(uuid_ep, by = "accepted_epithet") %>%
   mutate(
     sp_name = if_else(accepted_epithet == accepted_genus, genus, paste0(genus, " ", epithet)),
-    sp_id   = paste0(str_sub(genus, end = 5), if_else(accepted_epithet == accepted_genus, "", paste0("-", str_sub(epithet, end = 4))))
+    sp_id   = paste0(str_sub(genus, end = 6), if_else(accepted_epithet == accepted_genus, "", paste0("-", str_sub(epithet, end = 4))))
   )
 
 nrow(ano_species) == length(unique(ano_species$sp_id))
@@ -84,7 +84,7 @@ table(newplot10$lu_harmo_code)
 ## Create unique identifier
 n <- nrow(newplot10)
 
-set.seed(11)
+set.seed(21)
 uuid <- tibble(
   letter   = c(sample(letters, size = n * 3, replace = T), sample(1:9, size = n, replace = T)), 
   word     = paste0("n", rep(1:4, n)), 
@@ -123,7 +123,6 @@ nrow(tree09)
 nrow(distinct(tree09))
 
 length(unique(tree09$plot_id))
-
 
 mock_start <- tree09 %>%
   filter(plot_id %in% ano_plot$plot_id) %>%

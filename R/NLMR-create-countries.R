@@ -20,6 +20,7 @@ sea   <-  0.2
 ## Create raster files
 louland <- create_newland(.seed = 11, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
 
+plot(louland$lc_map)
 
 ## Write raster data 
 writeRaster(louland$topo    , "results/louland/topo.tiff"    , overwrite=T)
@@ -40,14 +41,14 @@ rgl::rgl.close()
 ## Recreate parameters
 louland_param <- tibble(
   lc_id = c(   5,    4,    3,    2),
-  lc    = c("EV", "MD", "DD", "PL"),
+  lc    = c("EV", "MD", "DD", "WL"),
   w     = c(0.11, 0.23, 0.08, 0.21)
 ) %>%
   bind_rows(list(lc_id = 1, lc = "NF", w = 1 - sum(.$w))) %>%
-  mutate(hex = c("#00743f", "#379683", "#5cdb95", "#8ee4af", "#edf5e1")) %>% 
+  mutate(hex = c("#00743f", "#379683", "#5cdb95", "#edeae5", "#f3e0dc")) %>%  ## WL: "#edf5e1"
   bind_rows(list(lc_id = c(0, 6), lc = c("WA", "MG"), w = c(0, 0), hex = c("#73c2fb", "#012172"))) %>%
   arrange(lc_id) %>%
-  bind_cols(lc_name = c("Water", "Non-forest", "Plantation", "Deciduous", "Mixed Deciduous", "Evergreen", "Mangrove"))
+  bind_cols(lc_name = c("Water", "Non-forest", "Other woodland", "Deciduous", "Mixed Deciduous", "Evergreen", "Mangrove"))
 
 ## Create land cover shapefile
 sf_lc <- st_as_stars(deratify(louland$lc)) %>%
@@ -55,14 +56,17 @@ sf_lc <- st_as_stars(deratify(louland$lc)) %>%
   st_set_crs(st_crs(32727)) %>%
   mutate(id = 1:nrow(.)) %>%
   st_cast("MULTIPOLYGON") %>%
-  st_make_valid()
+  st_make_valid() %>%
+  filter(lc != "WA" | id == 145)
 
 table(st_is_valid(sf_lc))
 st_is_valid(sf_lc, reason = TRUE)
 
+ggplot() +
+  geom_sf(data = sf_lc, aes(fill = lc))
+
 sf_lc3 <- sf_lc %>%
-  filter(lc != "WA" | id == 145) %>%
-  smoothr::smooth(method = "ksmooth", smoothness = 1.5) %>%
+  smoothr::smooth(method = "ksmooth", smoothness = 2.2) %>%
   mutate(id = 1:nrow(.))
 
 table(st_is_valid(sf_lc3))
@@ -102,13 +106,17 @@ st_write(sf_topo, "results/louland/topo/topo.shp", delete_dsn = T)
 
 
 ## Mapping 
-pal <- c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")
+pal <- c("#73c2fb", "#edf5e1", "#edeae5", "#5cdb95", "#379683", "#00743f", "#012172")
 
 
 ggplot() +
   geom_sf(data = sf_lc, aes(fill = lc)) +
-  scale_fill_manual(values = c("#73c2fb", "#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f", "#012172")) +
-  geom_sf(data = sf_admin, fill = NA, size = 1, color = "red")
+  scale_fill_manual(values = pal) +
+  geom_sf(data = sf_admin, fill = NA, size = 0.5, color = "red") +
+  theme_bw() +
+  theme(panel.background = element_rect(fill = "#73c2fb")) +
+  labs(fill = "")
+ggsave(filename = "results/louland/lc.png", width = 20, height = 15, units = "cm", dpi = 300)
 
 
 tmap_mode("view")

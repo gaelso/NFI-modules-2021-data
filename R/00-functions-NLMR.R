@@ -77,7 +77,7 @@ create_newland <- function(.seed = 11, .alt = 2000, .sea = 0.2, .nb_ft = 4, .mg 
   ## --- Forest types parameters --------------------------------------------
   ft_param <- tibble(
     id   = c(   5,    4,    3,    2),
-    lc  = c("EV", "MD", "DD", "PL"),
+    lc  = c("EV", "MD", "DD", "WL"),
     w   = c(0.11, 0.23, 0.08, 0.21),
   ) %>%
     bind_rows(list(id = 1, lc = "NF", w = 1 - sum(.$w))) %>%
@@ -104,7 +104,7 @@ create_newland <- function(.seed = 11, .alt = 2000, .sea = 0.2, .nb_ft = 4, .mg 
   
   ## --- Make base layers ---------------------------------------------------
   if (!is.null(.seed)) set.seed(.seed)
-  topo_mpd <- nlm_mpd(nrow = mp,  ncol = mp, resolution = rr, roughness = 0.4, rescale = T, verbose = F)
+  topo_mpd <- nlm_mpd(nrow = mp+5,  ncol = mp+5, resolution = rr, roughness = 0.4, rescale = T, verbose = F)
   topo_mpd <- crop(topo_mpd, extent(0, ll, 0, ll))
   # topo_mpd
   # plot(topo_mpd)
@@ -128,9 +128,11 @@ create_newland <- function(.seed = 11, .alt = 2000, .sea = 0.2, .nb_ft = 4, .mg 
   crs(topo)    <- country_loc$crs
   extent(topo) <- c(country_loc$xmin, country_loc$xmin + ll, country_loc$ymin, country_loc$ymin + ll)
   
+  plot(topo)
+  
   ## --- Sea mask -------------------------------------------------------------
   sea_mask <- topo
-  sea_mask[sea_mask > 0] <- NA
+  sea_mask[sea_mask >  0] <- NA
   sea_mask[sea_mask <= 0] <- 1
   #plot(sea_mask)
   
@@ -148,7 +150,7 @@ create_newland <- function(.seed = 11, .alt = 2000, .sea = 0.2, .nb_ft = 4, .mg 
   
   ## --- Make base layers at 100 row and cols rasters -----------------------
   if (!is.null(.seed)) set.seed(.seed)
-  ft_mpd <- nlm_mpd(nrow = mp,  ncol = mp, resolution = rr, roughness = 0.7, rescale = T, verbose = F)
+  ft_mpd <- nlm_mpd(nrow = mp+5,  ncol = mp+5, resolution = rr, roughness = 0.7, rescale = T, verbose = F)
   ft_mpd <- crop(ft_mpd, extent(0, ll, 0, ll))
   ft_mpd <- aggregate(ft_mpd, fact = 10, fun=mean) 
   
