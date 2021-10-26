@@ -139,6 +139,9 @@ gr_map <- ggplot() +
 gr_map
 ggsave(plot = gr_map, filename = "results/louland/lc.png", width = 20, height = 15, dpi = 100, units = "cm")
 
+gr_map2 <- gr_map + theme(legend.position = "none")
+gr_map2
+ggsave(plot = gr_map2, filename = "results/louland/lc-image.png", width = 15, height = 15, dpi = 100, units = "cm")
 
 # tmap_mode("view")
 # tmap_options(check.and.fix = TRUE)
