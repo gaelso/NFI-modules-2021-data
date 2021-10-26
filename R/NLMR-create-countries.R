@@ -106,23 +106,44 @@ st_write(sf_topo, "results/louland/topo/topo.shp", delete_dsn = T)
 
 
 ## Mapping 
-pal <- c("#73c2fb", "#edf5e1", "#edeae5", "#5cdb95", "#379683", "#00743f", "#012172")
+pal <- c("#73c2fb", "#edf5e1", "#ffcb9a", "#5cdb95", "#379683", "#00743f", "#012172") ## WL: "#edeae5", WA: "#73c2fb"
 
 
-ggplot() +
-  geom_sf(data = sf_lc, aes(fill = lc)) +
+gr_map <- ggplot() +
+  geom_sf(data = sf_lc, aes(fill = lc), col= NA) +
   scale_fill_manual(values = pal) +
-  geom_sf(data = sf_admin, fill = NA, size = 0.5, color = "red") +
+  geom_sf(data = sf_admin, fill = NA, size = 0.6, color = "black") +
   theme_bw() +
-  theme(panel.background = element_rect(fill = "#73c2fb")) +
-  labs(fill = "")
-ggsave(filename = "results/louland/lc.png", width = 20, height = 15, units = "cm", dpi = 300)
+  theme(
+    panel.background = element_rect(fill = "#73c2fb"),
+    text = element_text(family = "LoraIt")
+    ) +
+  labs(fill = "") +
+  coord_sf(xlim = c(-20.5, -19.5), ylim = c(-0.8, 0.2), expand = FALSE, crs = st_crs(4326)) +
+  ggspatial::annotation_scale(
+    location = "tr",
+    bar_cols = c("grey60", "white"),
+    text_family = "LoraIt"
+  ) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", 
+    which_north = "true",
+    pad_x = unit(0.2, "in"), 
+    pad_y = unit(0.3, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("grey40", "white"),
+      line_col = "grey20",
+      text_family = "LoraIt"
+    )
+  )
+gr_map
+ggsave(plot = gr_map, filename = "results/louland/lc.png", width = 20, height = 15, dpi = 100, units = "cm")
 
 
-tmap_mode("view")
-tmap_options(check.and.fix = TRUE)
-tm_shape(sf_lc5) + tm_polygons(col = "lc", palette = pal, border.col = NULL) +
-tm_shape(sf_admin) + tm_borders(lwd = 2)
+# tmap_mode("view")
+# tmap_options(check.and.fix = TRUE)
+# tm_shape(sf_lc5) + tm_polygons(col = "lc", palette = pal, border.col = NULL) +
+# tm_shape(sf_admin) + tm_borders(lwd = 2)
 
 
 

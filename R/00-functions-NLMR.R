@@ -85,7 +85,7 @@ create_newland <- function(.seed = 11, .alt = 2000, .sea = 0.2, .nb_ft = 4, .mg 
     mutate(
       #hex = c("#d3bdaf", "#6a8763", "#3b633f", "#40624c", "#243a39")
       #hex = c("#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#05386b")
-      hex = c("#edf5e1", "#8ee4af", "#5cdb95", "#379683", "#00743f")
+      hex = c("#edf5e1", "#8ee4af", "#5cdb95", "#ffcb9a", "#00743f")
     )
   
   ## --- Land cover parameters extension ------------------------------------

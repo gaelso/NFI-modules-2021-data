@@ -1,6 +1,7 @@
 
 ## Custo gitignore
 data/
+fonts/
 results/
 
 # History files
