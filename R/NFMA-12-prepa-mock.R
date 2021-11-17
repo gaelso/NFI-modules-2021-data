@@ -156,7 +156,7 @@ mock_tree <- mock_tmp %>%
 
 message("Mock tree table tree ID unique?")
 print(nrow(mock_tree) == length(unique(mock_tree$tree_id)))
-
+print(nrow(mock_plot) == length(unique(mock_tree$plot_id)))
 
 ##
 ## Wood density #############################################################

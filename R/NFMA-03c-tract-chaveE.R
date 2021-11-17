@@ -6,6 +6,8 @@
 
 sf_tract$envir_stress <- raster::extract(envir_stress, sf_tract)
 
+
+summary(sf_tract$envir_stress)
 tt <- sf_tract %>% filter(is.na(envir_stress))
 table(tt$iso)
 

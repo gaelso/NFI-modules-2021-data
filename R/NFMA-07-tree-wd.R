@@ -22,17 +22,22 @@
 ## Load data ################################################################
 ##
 
+## Abort using Cirad list, issues with duplicates
+# cwdd_species <- unique(sort(cwdd$species_name))
+# gwd_species  <- unique(sort(gwd$species_name))
+# gwd_add      <- setdiff(gwd_species, cwdd_species) 
+# 
+# length(cwdd_species)
+# length(gwd_species)
+# length(gwd_add)
+# 
+# ## Combine 
+# wd_all <- gwd %>% 
+#   filter(species_name %in% gwd_add) %>%
+#   bind_rows(cwdd, .) %>%
+#   arrange(species_name)
+wd_all <- gwd
 
-cwdd_species <- unique(sort(cwdd$species_name))
-gwd_species  <- unique(sort(gwd$species_name))
-gwd_add      <- setdiff(gwd_species, cwdd_species) 
-
-## Combine 
-wd_all <- gwd %>% 
-  filter(species_name %in% gwd_add) %>%
-  bind_rows(cwdd, .) %>%
-  arrange(species_name)
-  
 
 ## Send species to correct
 wd_specieslist <- tibble(input = sort(unique(wd_all$species_name)))
@@ -59,6 +64,8 @@ wd_species <- wd_corr %>%
     ) %>%
   ungroup()
 
+table(wd_species$source)
+
 ## Genus level average of species average (each species has weight 1)
 wd_genus <- wd_species %>%
   mutate(accepted_genus = word(accepted_name)) %>%
@@ -69,6 +76,7 @@ wd_genus <- wd_species %>%
     wd_sd2  = sd(wd_avg)
   ) %>%
   ungroup()
+
 
 ## Join to tree
 tree07 <- tree06 %>%

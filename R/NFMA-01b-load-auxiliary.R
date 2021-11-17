@@ -65,7 +65,9 @@ if (!("E.nc" %in% list.files("data/GIS"))) {
 }
 
 envir_stress <- raster("data/GIS/E.nc")
-
+plot(envir_stress)
+freq(envir_stress)
+raster::cellStats(envir_stress, stat = "min")
 
 ##
 ## Wood density #############################################################
