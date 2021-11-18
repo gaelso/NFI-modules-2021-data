@@ -143,6 +143,23 @@ gr_map2 <- gr_map + theme(legend.position = "none")
 gr_map2
 ggsave(plot = gr_map2, filename = "results/louland/lc-image.png", width = 15, height = 15, dpi = 100, units = "cm")
 
+
+## Create a circle around the map
+sf_circle <- st_centroid(sf_admin) %>%
+  st_buffer(dist = 70000)
+
+gr_icon <- ggplot() +
+  geom_sf(data = sf_circle, fill = "#73c2fb", col = NA) +
+  geom_sf(data = sf_lc, aes(fill = lc), col= NA) +
+  scale_fill_manual(values = pal) +
+  #geom_sf(data = sf_admin, fill = NA, size = 0.6, color = "black") +
+  theme_void() +
+  theme(legend.position = "none") +
+  labs(fill = "") #+
+  #coord_sf(xlim = c(-20.5, -19.5), ylim = c(-0.8, 0.2), expand = FALSE, crs = st_crs(4326))
+gr_icon
+ggsave(plot = gr_icon, filename = "results/louland/lc-icon.png", width = 32, height = 32, dpi = 72, units = "px")
+
 # tmap_mode("view")
 # tmap_options(check.and.fix = TRUE)
 # tm_shape(sf_lc5) + tm_polygons(col = "lc", palette = pal, border.col = NULL) +
