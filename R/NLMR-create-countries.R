@@ -158,7 +158,24 @@ gr_icon <- ggplot() +
   labs(fill = "") #+
   #coord_sf(xlim = c(-20.5, -19.5), ylim = c(-0.8, 0.2), expand = FALSE, crs = st_crs(4326))
 gr_icon
-ggsave(plot = gr_icon, filename = "results/louland/lc-icon.png", width = 32, height = 32, dpi = 72, units = "px")
+ggsave(plot = gr_icon, filename = "results/louland/lc-icon.png", width = 1000, height = 1000, dpi = 300, units = "px")
+
+
+sf_circle <- st_centroid(sf_admin) %>%
+  st_buffer(dist = 200000)
+
+gr_logo <- ggplot() +
+  #geom_sf(data = sf_circle, fill = "#73c2fb", col = NA) +
+  geom_sf(data = sf_lc, aes(fill = lc), col= NA) +
+  scale_fill_manual(values = pal) +
+  #geom_sf(data = sf_admin, fill = NA, size = 0.6, color = "black") +
+  theme_void() +
+  theme(legend.position = "none") +
+  labs(fill = "") #+
+#coord_sf(xlim = c(-20.5, -19.5), ylim = c(-0.8, 0.2), expand = FALSE, crs = st_crs(4326))
+gr_logo
+ggsave(plot = gr_logo, filename = "results/louland/lc-logo.png", width = 1000, height = 1000, dpi = 300, units = "px")
+
 
 # tmap_mode("view")
 # tmap_options(check.and.fix = TRUE)
