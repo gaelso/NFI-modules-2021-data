@@ -50,7 +50,7 @@ make_3d <- function(.country){
     add_shadow(lamb_shade(ray)) %>%
     plot_3d(
       ray,
-      zscale=10, fov=0, theta=-45, phi=45, windowsize=c(800,800), zoom=0.8,
+      zscale=10, fov=0, theta=-45, phi=45, windowsize=c(250,250), zoom=0.8,
       water=TRUE, wateralpha = 0.8, watercolor = "#73c2fb", waterlinecolor = "white",
       waterlinealpha = 0.3, solid = FALSE
     )
