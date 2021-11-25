@@ -64,10 +64,10 @@ bigtree <- tree05tmp %>%
   mutate(
     tree_xsq     = if_else(tree_y <= 40, tree_x - 10, tree_x + 10),
     tree_ysq     = if_else(tree_y <= 40, tree_y - 20, tree_y - 60),
-    tree_dist    = sqrt(tree_xsq^2 + tree_ysq^2),
+    tree_dist    = round(sqrt(tree_xsq^2 + tree_ysq^2), 1),
     tree_angle   = atan2(tree_ysq, tree_xsq),
     tree_degree  = (pi/2 - tree_angle) * 180 / pi,
-    tree_azimuth = if_else(tree_degree < 0 , 360 + tree_degree, tree_degree),
+    tree_azimuth = round(if_else(tree_degree < 0 , 360 + tree_degree, tree_degree)),
     tree_size    = "dbh >= 20"
   ) %>%
   filter(tree_dbh >= 20)
@@ -143,10 +143,10 @@ smalltree <- tree05tmp %>%
   mutate(
     tree_xsq = tree_x,
     tree_ysq = tree_y - 5,
-    tree_dist    = sqrt(tree_xsq^2 + tree_ysq^2),
+    tree_dist    = round(sqrt(tree_xsq^2 + tree_ysq^2), 1),
     tree_angle   = atan2(tree_ysq, tree_xsq),
     tree_degree  = (pi/2 - tree_angle) * 180 / pi,
-    tree_azimuth = if_else(tree_degree < 0, 360 + tree_degree, tree_degree),
+    tree_azimuth = round(if_else(tree_degree < 0, 360 + tree_degree, tree_degree)),
     tree_size    = "10 <= dbh < 20"
     )
 
