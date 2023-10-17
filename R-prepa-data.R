@@ -18,9 +18,9 @@ source('R/00-functions-misc.R')
 
 source('R/00-functions-NFMA.R')
 
-source("R/00-functions-NLMR.R")
+# source("R/00-functions-NLMR.R")
 
-source("R/00-functions-3D.R")
+# source("R/00-functions-3D.R")
 
 #source("R/00-functions-NLMR-topo2.R")
 
@@ -81,9 +81,9 @@ source('R/NFMA-11-forest-agb.R')
 
 source('R/NFMA-12-prepa-mock.R')
 
-##
-## Create new land basded on NLMR ###########################################
-##
-
-## NLMR
-source('R/NLMR-create-countries.R')
+# ##
+# ## Create new land basded on NLMR ###########################################
+# ##
+# 
+# ## NLMR
+# source('R/NLMR-create-countries.R')

@@ -5,16 +5,16 @@
 
 ## Check plot column names
 # tt <- names(plot_init)
-# plot_init %>% filter(!is.na(X39a.PlotStartingPointLatitude)) %>% pull(country) %>% unique()  ## BGD, COM, GMB, KRG, LBN, PHL, ZMB
-# plot_init %>% filter(!is.na(X39d.PlotStartingPointX)) %>% pull(country) %>% unique()  ## AGO, COM, GMB, KRG, LBN, PHL, ZMB
-# plot_init %>% filter(!is.na(Plot.LatitudeField)) %>% pull(country) %>% unique()  ## CRI
-# plot_init %>% filter(!is.na(latitudinicio)) %>% pull(country) %>% unique()  ## HND
-# plot_init %>% filter(!is.na(UTMX.MP)) %>% pull(country) %>% unique()  ## NIC
+# plot_init |> filter(!is.na(X39a.PlotStartingPointLatitude)) |> pull(country) |> unique()  ## BGD, COM, GMB, KRG, LBN, PHL, ZMB
+# plot_init |> filter(!is.na(X39d.PlotStartingPointX)) |> pull(country) |> unique()  ## AGO, COM, GMB, KRG, LBN, PHL, ZMB
+# plot_init |> filter(!is.na(Plot.LatitudeField)) |> pull(country) |> unique()  ## CRI
+# plot_init |> filter(!is.na(latitudinicio)) |> pull(country) |> unique()  ## HND
+# plot_init |> filter(!is.na(UTMX.MP)) |> pull(country) |> unique()  ## NIC
 # 
-# plot_init %>% filter(!is.na(ID.PLOT)) %>% pull(country) %>% unique()  ## missing CRI, NIC, HND
+# plot_init |> filter(!is.na(ID.PLOT)) |> pull(country) |> unique()  ## missing CRI, NIC, HND
 
-plot02 <- plot01 %>%
-  left_join(country_iso, by = "country") %>%
+plot02 <- plot01 |>
+  left_join(country_iso, by = "country") |>
   mutate(
     tract_id = case_when(
       !is.na(ID.TRACT)       ~ paste0(iso, "_", ID.TRACT),
@@ -94,8 +94,8 @@ plot02 <- plot01 %>%
       iso == "NIC" & plot_no == 4 ~ plot_y_tmp,
       TRUE ~ plot_y_tmp
     )
-  ) %>%
-  left_join(tract02, by = c("iso", "tract_id")) %>%
+  ) |>
+  left_join(tract02, by = c("iso", "tract_id")) |>
   mutate(
     epsg = case_when(
       !is.na(epsg)                       ~ epsg,
@@ -126,20 +126,20 @@ plot02 <- plot01 %>%
       !is.na(epsg) ~ epsg,
       TRUE         ~ epsg_default
     )
-  ) %>%
+  ) |>
   filter(
     !(is.na(plot_x) & is.na(plot_long)),
     !(is.na(plot_y) & is.na(plot_lat ))
-  ) %>%
-  select(iso, tract_id, plot_id, plot_no, plot_lat, plot_long, plot_x, plot_y, epsg, epsg_corr)
+  ) |>
+  dplyr::select(iso, tract_id, plot_id, plot_no, plot_lat, plot_long, plot_x, plot_y, epsg, epsg_corr)
 
 
 ## Checks
 table(plot02$iso, plot02$plot_no, useNA = "always")
 
 # table(plot$plot_no, useNA = "always")
-# check <- plot %>% filter(is.na(tract_id))
+# check <- plot |> filter(is.na(tract_id))
 # table(check$iso)
-# check <- plot %>% filter(is.na(plot_id))
+# check <- plot |> filter(is.na(plot_id))
 # table(check$iso)
 

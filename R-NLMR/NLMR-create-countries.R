@@ -2,13 +2,42 @@
 ## Gael Sola, FAO
 
 
+## libs
+#remotes::install_github("ropensci/NLMR")
+#remotes::install_version("NLMR", "0.4")
+#remotes::install_github("tylermorganwall/rayshader")
+library(NLMR)
+library(landscapetools)
+library(raster)
+# library(igraph)
+# library(RSAGA)
+library(terra)
+library(sf)
+# library(stars)
+# library(rayshader)
+library(rgl)
+library(plotly)
+library(scales)
+library(smoothr)
+
+## Tidy
+library(ggpubr)
+library(ggrepel)
+library(stringi)
+library(tidyverse)
+
+options(dplyr.summarise.inform = FALSE)
+
+
+source("R-NLMR/00-functions-NLMR.R")
+
+
+dir.create("results/mock-country", showWarnings = FALSE)
+
+
 ## Create countries #########################################################
 
-##
-## Louland ##################################################################
-##
 
-dir.create("results/louland", showWarnings = FALSE)
 
 ## Params
 nb_ft <- 4
@@ -18,9 +47,30 @@ sea   <-  0.2
 
 
 ## Create raster files
-louland <- create_newland(.seed = 11, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
+mock_country <- create_newland(.seed = 11, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
 
-plot(louland$lc_map)
+mocks <- map(1:10, function(x){
+  
+  mock_country <- create_newland(.seed = x, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
+  print(mock_country$lc_map)
+  
+  mock_country
+  
+})
+
+for (i in 1:10) {
+  plot(mocks[[i]]$lc_map)
+}
+plot(mocks[[2]]$lc_map)
+plot(mocks[[3]]$lc_map)
+
+mocks[[3]]
+mocks[[9]]
+mock_country$gr
+
+mockss <- create_newland(.seed = 3, .alt = alt, .sea = sea, .nb_ft = nb_ft, .mg = mg, .river = F)
+mockss
+
 
 ## Write raster data 
 writeRaster(louland$topo    , "results/louland/topo.tiff"    , overwrite=T)

@@ -64,10 +64,10 @@ if (!("E.nc" %in% list.files("data/GIS"))) {
   unlink("data/GIS/E.nc.zip")
 }
 
-envir_stress <- raster("data/GIS/E.nc")
-plot(envir_stress)
-freq(envir_stress)
-raster::cellStats(envir_stress, stat = "min")
+envir_stress <- terra::rast("data/GIS/E.nc")
+# plot(envir_stress)
+# freq(envir_stress)
+# raster::cellStats(envir_stress, stat = "min")
 
 ##
 ## Wood density #############################################################
@@ -90,11 +90,11 @@ if (!("GlobalWoodDensityDatabase.txt" %in% list.files("data/WD"))) {
 
 
 ## Load data
-cwdd <- readr::read_csv("data/WD/Cirad-wood-density-database.csv") %>%
-  select(species_name = Taxa, continent = Continent, wd = Db) %>%
+cwdd <- readr::read_csv("data/WD/Cirad-wood-density-database.csv") |>
+  dplyr::select(species_name = Taxa, continent = Continent, wd = Db) |>
   mutate(source = "CWDD")
 
-gwd  <- readr::read_tsv("data/WD/GlobalWoodDensityDatabase.txt") %>%
-  select(species_name = Binomial, continent = Region, wd = WSG) %>%
+gwd  <- readr::read_tsv("data/WD/GlobalWoodDensityDatabase.txt") |>
+  dplyr::select(species_name = Binomial, continent = Region, wd = WSG) |>
   mutate(source = "GWD")
 

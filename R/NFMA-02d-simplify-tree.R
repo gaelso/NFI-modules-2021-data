@@ -5,11 +5,16 @@
 
 ## Harmonize tree data ######################################################
 
-lus02 %>% filter(is.na(lus_no)) %>% pull(iso) %>% unique()
+lus02 |> filter(is.na(lus_no)) |> pull(iso) |> unique()
 tt <- names(tree01)
 
-tree02tmp <- tree01 %>%
-  left_join(country_iso, by = "country") %>%
+sp_codes2 <- sp_codes |> 
+  filter(!is.na(sp_code)) |>
+  rename(tree_species_code = sp_code) |>
+  distinct(country, tree_species_code, .keep_all = T)
+
+tree02tmp <- tree01 |>
+  left_join(country_iso, by = "country") |>
   mutate(
     plot_id = case_when(
       !is.na(ID.PLOT)    ~ paste0(iso, "_", ID.PLOT),
@@ -98,42 +103,47 @@ tree02tmp <- tree01 %>%
       !is.na(GRADO.COND.FITO)        ~ as.numeric(GRADO.COND.FITO), ## NIC 
       TRUE ~ NA_real_
     )
-  ) %>%
-  select(country, iso, plot_id, lus_no, tree_no, tree_dbh, tree_pom, tree_height_top, tree_height_bole, tree_height_me,
-         tree_x, tree_y, tree_species_code, tree_species_name, tree_health) %>%
-  left_join(sp_codes, by = c("country", "tree_species_code" = "sp_code")) %>%
-  mutate(tree_species_name = if_else(!is.na(sp_name), sp_name, tree_species_name)) %>% ## One country has species names only, lost species code
-  select(-sp_name) %>%
+  ) |>
+  dplyr::select(
+    country, iso, plot_id, lus_no, tree_no, tree_dbh, tree_pom, tree_height_top, tree_height_bole, tree_height_me,
+    tree_x, tree_y, tree_species_code, tree_species_name, tree_health
+    ) |>
+  left_join(sp_codes2, by = c("country", "tree_species_code")) |>
+  mutate(tree_species_name = if_else(!is.na(sp_name), sp_name, tree_species_name)) |> ## One country has species names only, lost species code
+  dplyr::select(-sp_name) |>
   filter(!is.na(lus_no), !is.na(plot_id), !is.na(tree_dbh))
 
-
 ## Add lus_no for CRI
-tree02 <- tree02tmp %>%
-  left_join(check_lus %>% select(-lus_no), by = c("iso", "plot_id", "lus_no" = "lus_code")) %>%
-  mutate(lus_no = as.numeric(if_else(!is.na(lus_no_corr), as.character(lus_no_corr), lus_no))) %>%
-  select(-lus_no_corr)
+check_lus2 <- check_lus |> 
+  dplyr::select(-lus_no) |>
+  rename(lus_no = lus_code) |>
+  distinct(iso, plot_id, lus_no, .keep_all = T)
 
+tree02 <- tree02tmp |>
+  left_join(check_lus2, by = c("iso", "plot_id", "lus_no")) |>
+  mutate(lus_no = as.numeric(if_else(!is.na(lus_no_corr), as.character(lus_no_corr), lus_no))) |>
+  dplyr::select(-lus_no_corr)
 
 ## Checks
 summary(tree02$tree_dbh)
 summary(tree02$tree_height_top)
 
-tt <- tree02 %>% filter(tree_dbh < 10)
+tt <- tree02 |> filter(tree_dbh < 10)
 table(tt$iso, useNA = "always")
 
-tt <- tree02 %>% filter(tree_dbh >= 10, tree_dbh < 20)
+tt <- tree02 |> filter(tree_dbh >= 10, tree_dbh < 20)
 table(tt$iso, useNA = "always")
 
-tt <- tree02 %>% filter(tree_dbh >= 20)
+tt <- tree02 |> filter(tree_dbh >= 20)
 table(tt$iso, useNA = "always")
 
-# tree02 %>%
+# tree02 |>
 #   ggplot(aes(x = tree_dbh, y = tree_height_top, color = as.factor(tree_health))) +
 #   geom_point() +
 #   facet_wrap(~ iso) +
 #   theme_bw()
 
-# tree02 %>%
+# tree02 |>
 #   ggplot(aes(x = tree_x, y = tree_y, color = as.character(lus_no))) +
 #   geom_point(alpha = 0.05) +
 #   facet_wrap(~iso) +

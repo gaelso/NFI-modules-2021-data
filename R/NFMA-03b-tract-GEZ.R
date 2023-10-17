@@ -1,9 +1,9 @@
 ## NFI-modules-2021-learnr
 ## Gael Sola, FAO
 
-sf_tract <- newtract03tmp3 %>%
-  st_as_sf(coords = c("tract_long", "tract_lat"), crs = 4326) %>%
-  st_join(sf_gez2) %>%
+sf_tract <- newtract03tmp3 |>
+  st_as_sf(coords = c("tract_long", "tract_lat"), crs = 4326) |>
+  st_join(sf_gez2) |>
   mutate(
     gez_name   = case_when(
       iso == "COM" & is.na(gez_name) ~ "Tropical moist forest",
@@ -51,8 +51,8 @@ table(sf_tract$gez_name, sf_tract$iso, useNA = "always")
 ## Checks
 # walk(unique(sf_tract$iso), function(x){
 #   out <- ggplot() +
-#     geom_sf(data = sf_tract %>% filter(iso == x), aes(color = gez_name, shape = gez_name)) +
-#     geom_sf(data = sf_country2 %>% filter(GID_0 == x), fill = NA) +
+#     geom_sf(data = sf_tract |> filter(iso == x), aes(color = gez_name, shape = gez_name)) +
+#     geom_sf(data = sf_country |> filter(GID_0 == x), fill = NA) +
 #     labs(title = x) +
 #     theme_void()
 #   print(out)

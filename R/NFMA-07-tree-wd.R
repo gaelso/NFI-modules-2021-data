@@ -32,56 +32,56 @@
 # length(gwd_add)
 # 
 # ## Combine 
-# wd_all <- gwd %>% 
-#   filter(species_name %in% gwd_add) %>%
-#   bind_rows(cwdd, .) %>%
+# wd_all <- gwd |> 
+#   filter(species_name %in% gwd_add) |>
+#   bind_rows(cwdd, .) |>
 #   arrange(species_name)
 wd_all <- gwd
 
 
 ## Send species to correct
 wd_specieslist <- tibble(input = sort(unique(wd_all$species_name)))
-write_csv(wd_specieslist %>% rename(scientific_name = input), "data/WD/WD_species.csv")
+write_csv(wd_specieslist |> rename(scientific_name = input), "data/WD/WD_species.csv")
 
 ## Get corrected species
-wd_speciescorr <- read_csv("data/WD/WD_species-results.csv") %>%
-  select(species_name = scientific_name, accepted_name)
+wd_speciescorr <- read_csv("data/WD/WD_species-results.csv") |>
+  dplyr::select(species_name = scientific_name, accepted_name)
 
 ## Get average per species and genus
-wd_corr <- wd_all %>%
-  left_join(wd_speciescorr, by = "species_name")
+wd_corr <- wd_all |> 
+  filter(species_name %in% wd_speciescorr$accepted_name) |>
+  rename(accepted_name = species_name)
 
-length(unique(wd_corr$species_name))
 length(unique(wd_corr$accepted_name))
 
 ## Species level averages
-wd_species <- wd_corr %>%
-  group_by(accepted_name, source) %>%
+wd_species <- wd_corr |>
+  group_by(accepted_name, source) |>
   summarise(
     count  = n(),
     wd_avg = mean(wd),
     wd_sd  = sd(wd)
-    ) %>%
+    ) |>
   ungroup()
 
 table(wd_species$source)
 
 ## Genus level average of species average (each species has weight 1)
-wd_genus <- wd_species %>%
-  mutate(accepted_genus = word(accepted_name)) %>%
-  group_by(accepted_genus) %>%
+wd_genus <- wd_species |>
+  mutate(accepted_genus = word(accepted_name)) |>
+  group_by(accepted_genus) |>
   summarise(
     count  = n(),
     wd_avg2 = mean(wd_avg),
     wd_sd2  = sd(wd_avg)
-  ) %>%
+  ) |>
   ungroup()
 
 
 ## Join to tree
-tree07 <- tree06 %>%
-  left_join(wd_species %>% select(accepted_name, wd_avg), by = "accepted_name") %>%
-  left_join(wd_genus %>% select(accepted_genus, wd_avg2), by = "accepted_genus") %>%
+tree07 <- tree06 |>
+  left_join(wd_species |> select(accepted_name, wd_avg), by = "accepted_name") |>
+  left_join(wd_genus |> select(accepted_genus, wd_avg2), by = "accepted_genus") |>
   mutate(
     tree_wd = case_when(
       !is.na(wd_avg) ~ wd_avg,
@@ -101,13 +101,13 @@ tree07 <- tree06 %>%
       iso %in% c("CRI", "GTM", "HND", "NIC") ~ "region3",
       TRUE ~ NA_character_
     )
-  ) %>%
+  ) |>
   select(-wd_avg, -wd_avg2)
 
 ## Checks
 table(tree07$wd_level, useNA = "always")
 
 ## Remove tmp object
-rm(cwdd_species, gwd_species, gwd_add, wd_all, wd_corr, wd_specieslist, wd_speciescorr)
-
+#rm(cwdd_species, gwd_species, gwd_add, wd_all, wd_corr, wd_specieslist, wd_speciescorr)
+rm(wd_all, wd_corr, wd_specieslist, wd_speciescorr)
 

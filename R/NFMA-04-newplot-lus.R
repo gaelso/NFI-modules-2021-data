@@ -5,17 +5,17 @@
 ## Harmonize land uses and land uses codes ######################################
 
 ## Check land uses
-tt <- newplot02 %>%
+tt <- newplot02 |>
   filter(str_detect(string = lus, pattern = "foret|forest|bosque|latifoliado|manglar|pino"))
 
-tt_forest <- tt %>% pull(lus) %>% unique() %>% sort()
+tt_forest <- tt |> pull(lus) |> unique() |> sort()
 tt_forest
-tt_nonforest <- setdiff(unique(newplot02$lus), tt_forest) %>% sort()
+tt_nonforest <- setdiff(unique(newplot02$lus), tt_forest) |> sort()
 tt_nonforest
 
-tt <- newplot02 %>% filter(is.na(lus))
+tt <- newplot02 |> filter(is.na(lus))
 table(tt$iso)
-tt <- newplot02 %>% filter(!is.na(lus))
+tt <- newplot02 |> filter(!is.na(lus))
 table(tt$iso)
 
 ## Land use remade categories
@@ -27,10 +27,10 @@ lu_harmo_class <- tibble(
 
 
 ## Create plots and LCC objects for forest
-newplot04tmp1 <- newplot02 %>%
-  select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) %>%
-  left_join(newtract03, by = c("iso", "tract_id")) %>%
-  filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino")) %>%
+newplot04tmp1 <- newplot02 |>
+  dplyr::select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) |>
+  left_join(newtract03, by = c("iso", "tract_id")) |>
+  filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino")) |>
   mutate(
     lu_mg = if_else(str_detect(lus, "manglar|mangrove"), 1, 0),
     lu_pl = if_else(str_detect(lus, "plantation|plantacion"), 1, 0),
@@ -61,16 +61,16 @@ newplot04tmp1 <- newplot02 %>%
       lu_pl == 0 & lu_co == 0 & gez_abbrev == "TM"   ~ "Mixed Deciduous",
       TRUE ~ "Other"
     )
-  ) %>%
+  ) |>
   left_join(lu_harmo_class, by = c("lu_harmo2" = "lu_harmo"))
 
 
 ## Create plots and LCC objects for woodlands
-newplot04tmp2 <- newplot02 %>%
-  select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) %>%
-  left_join(newtract03, by = c("iso", "tract_id")) %>%
-  filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino", negate = T)) %>%
-  filter(str_detect(string = lus, pattern = "wood|con arboles|with trees")) %>%
+newplot04tmp2 <- newplot02 |>
+  dplyr::select(iso, country, tract_id, plot_id, plot_no, plot_width, plot_length, lus_no, lus_code, lus) |>
+  left_join(newtract03, by = c("iso", "tract_id")) |>
+  filter(str_detect(string = lus, pattern = "foret|forest|bosque|latif|manglar|pino", negate = T)) |>
+  filter(str_detect(string = lus, pattern = "wood|con arboles|with trees")) |>
   mutate(
     lu_mg = 0,
     lu_pl = 0,
@@ -86,7 +86,7 @@ newplot04tmp2 <- newplot02 %>%
     lu_dsop = lu_ds + lu_op,
     lu_harmo1 = "Other woodland",
     lu_harmo2 = "Other woodland"
-  ) %>%
+  ) |>
   left_join(lu_harmo_class, by = c("lu_harmo2" = "lu_harmo"))
 
 
@@ -96,13 +96,13 @@ newplot04 <- bind_rows(newplot04tmp1, newplot04tmp2)
 ## Checks
 table(newplot04$lu_harmo2)
 
-tt <- newplot04 %>% filter(lu_harmo2 == "Other")
+tt <- newplot04 |> filter(lu_harmo2 == "Other")
 table(tt$lus, tt$gez_code)
 
-sf_gez2 %>% as_tibble() %>% select(gez_code, gez_name) %>% distinct() %>% arrange(gez_code)
+sf_gez2 |> as_tibble() |> dplyr::select(gez_code, gez_name) |> distinct() |> arrange(gez_code)
 
 
-tt <- newplot04 %>% filter(is.na(gez_name))
+tt <- newplot04 |> filter(is.na(gez_name))
 tt
 
 table(newplot04$iso)
