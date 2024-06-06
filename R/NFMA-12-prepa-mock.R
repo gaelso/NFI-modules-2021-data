@@ -25,9 +25,10 @@ set.seed(20)
 uuid_gn <- tibble(
   letter   = sample(letters, size = count_gn * 8, replace = T), 
   word     = paste0("n", rep(1:8, count_gn)), 
-  raw_num = rep(1:count_gn, 8)
+  raw_num  = rep(1:count_gn, each = 8)
   ) %>%
-  pivot_wider(names_from = word, values_from = letter, values_fn = list) %>%
+  #pivot_wider(names_from = word, values_from = letter, values_fn = list) %>%
+  pivot_wider(names_from = word, values_from = letter) %>%
   rowwise() %>%
   mutate(
     raw   = paste0(n1, sample(vowels, 1), n2, n3, sample(vowels, 1), n4, sample(vowels, 1), n5, n6, sample(vowels, 1), n7, sample(vowels, 1), n8, collapse = ""),
@@ -40,18 +41,20 @@ uuid_gn <- tibble(
 length(unique(uuid_gn$genus))
 length(unique(uuid_gn$genus)) == length(unique(uuid_gn$accepted_genus))
 
+
+set.seed(10)
 uuid_ep <- tibble(
-  letter   = sample(letters, size = count_sp * 6, replace = T), 
-  word     = paste0("n", rep(1:6, count_sp)), 
-  raw_num = rep(1:count_sp, 6)
+  letter   = sample(letters, size = count_sp * 6, replace = T),
+  word     = paste0("n", rep(1:6, count_sp)),
+  raw_num  = rep(1:count_sp, each = 6)
 ) %>%
-  pivot_wider(names_from = word, values_from = letter, values_fn = list) %>%
+  pivot_wider(names_from = word, values_from = letter) %>%
   rowwise() %>%
   mutate(
     raw     = paste0(n1, sample(vowels, 1), n2, n3, sample(vowels, 1), n4, sample(vowels, 1), n5, n6, collapse = ""),
     cut     = sample(3:6, 1),
     epithet = str_sub(raw, end = cut)
-  ) %>% 
+  ) %>%
   bind_cols(accepted_epithet = unique(raw_tmp$accepted_epithet)) %>%
   select(accepted_epithet, epithet)
 
@@ -60,11 +63,15 @@ ano_species <- raw_tmp %>%
   left_join(uuid_ep, by = "accepted_epithet") %>%
   mutate(
     sp_name = if_else(accepted_epithet == accepted_genus, genus, paste0(genus, " ", epithet)),
-    sp_id   = paste0(str_sub(genus, end = 6), if_else(accepted_epithet == accepted_genus, "", paste0("-", str_sub(epithet, end = 4))))
+    sp_id   = paste0(str_sub(genus, end = 6), if_else(accepted_epithet == accepted_genus, "", paste0("-", str_sub(epithet, end = 5))))
   )
+
 
 nrow(ano_species) == length(unique(ano_species$sp_id))
 length(unique(ano_species$accepted_name)) == length(unique(ano_species$sp_id))
+
+# Check
+#ano_species |> group_by(sp_id) |> summarise(count = n()) |> filter(count > 1)
 
 raw_species <- ano_species %>%
   select(sp_id, sp_name, genus) %>%
@@ -108,7 +115,8 @@ ano_plot <- raw_tmp %>%
   
 ## Anonymized plot
 raw_plot <- raw_tmp %>%
-  select(plot_id = raw_id, gez_name, gez_code = gez_abbrev, lu_factor, lu_code = lu_harmo_code, envir_stress)
+  select(plot_id = raw_id, gez_name, gez_code = gez_abbrev, lu_code = lu_harmo_code, envir_stress)
+  #select(plot_id = raw_id, gez_name, gez_code = gez_abbrev, lu_factor, lu_code = lu_harmo_code, envir_stress)
 raw_plot
 
 message("Mock plot table plot ID unique?")
