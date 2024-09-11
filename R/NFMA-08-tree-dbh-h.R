@@ -10,7 +10,7 @@ tree08 <- tree07 |>
     tree_height_cor    = if_else(tree_height_valid != 1 | is.na(tree_height_top), tree_height_chave, tree_height_top),
     tree_height_origin = if_else(tree_height_valid != 1 | is.na(tree_height_top), "model", "data"),
     ) |>
-  filter(tree_health <= 2, !(iso %in% c('LBN', 'KGZ')))
+  filter(tree_health %in% 1:2, !(iso %in% c('LBN', 'KGZ')))
 
 summary(tree08$envir_stress)
 summary(tree08$tree_height_chave)

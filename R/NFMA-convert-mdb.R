@@ -2,7 +2,9 @@
 ## Gael Sola, FAO
 
 
-## This script requires Hmisc and linux package mdbtools (apt-get install mdbtools).
+## !! This script requires Hmisc and
+## - linux package mdbtools (apt-get install mdbtools) OR
+## - macOS package mdbtools (brew install mdbtools)
 
 library(Hmisc)
 
@@ -121,11 +123,11 @@ db_path <- "data/NFMA/mdb_files/latinamerica/Inf_Central_06032009.mdb"
 filename <- db_path %>% str_remove(pattern = ".*/") %>% str_remove(".mdb")
 write_file("", file = file.path(out_path, paste0("DB_name_", filename, ".txt")))
 
-mdb.get(db_path, tables = T)
-db_tmp <- mdb.get(db_path)
+Hmisc::mdb.get(db_path, tables = T)
+db_tmp <- mdb.get(db_path, table = "ARBOLES")
 
 ## Save tables
-db_tmp[["UNIDADES_MUESTREOS"]]   %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F1-Tract_spanish.csv"))
+tt <- mdb.get(db_path, table = "UNIDADES_MUESTREOS") %>% rm_labels() %>% as_tibble()
 db_tmp[["PARCELAS"]]    %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F2-Plot_spanish.csv"))
 db_tmp[["ARBOLES"]]    %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F3-Trees_spanish.csv"))
 db_tmp[["ESQUEMA_PARCELA_CUT"]] %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F5-LUS_spanish.csv"))

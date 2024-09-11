@@ -103,6 +103,7 @@ uuid <- tibble(
 
 ## Assign to plot
 raw_tmp <- newplot10 %>%
+  left_join(country_iso, by = join_by(country, iso)) |>
   mutate(raw_num = 1:n) %>%
   left_join(uuid, by = "raw_num") %>%
   mutate(raw_id = paste0(str_to_lower(lu_harmo_code), "-", raw_id))
@@ -115,8 +116,8 @@ ano_plot <- raw_tmp %>%
   
 ## Anonymized plot
 raw_plot <- raw_tmp %>%
-  select(plot_id = raw_id, gez_name, gez_code = gez_abbrev, lu_code = lu_harmo_code, envir_stress)
-  #select(plot_id = raw_id, gez_name, gez_code = gez_abbrev, lu_factor, lu_code = lu_harmo_code, envir_stress)
+  select(plot_id = raw_id, region, gez_name, gez_code = gez_abbrev, lu_code = lu_harmo_code, envir_stress) %>%
+  mutate(envir_stress = round(envir_stress, 4))
 raw_plot
 
 message("Mock plot table plot ID unique?")
@@ -219,4 +220,55 @@ walk(tmp_list, function(x){
   write_csv(get(x), file.path("results/mock-data", paste0(x, ".csv")))
 })
 
+explanations <- c(
+  "Plot design:",
+  "Two nested circular plots",
+  " - 5 m radius for trees with DBH greater or equal to 10 cm and less than 20 cm.",
+  " - 20 m radius for trees with DBH gretare or equal to 20 cm.",
+  " ",
+  "Code List:",
+  "Plot level",
+  "Region: FAO world regions",
+  "AF: Africa",
+  "AP: Asia and the Pacific",
+  "EU: Europe and Central Asia",
+  "LC: Latin America and the Carribean",
+  "NE: Near East and North Africa",
+  " ",
+  "GEZ: FAO Global Ecological Zone",
+  "TAwb: Tropical dry forest",  
+  "TAr: Tropical rainforest",  
+  "TAwa: Tropical moist forest", 
+  "TBSh: Tropical shrubland",     
+  "TM: Tropical mountain system",
+  " ",
+  "lu_code: Land use code",
+  "DE: Deciduous forest",
+  "EV: Evergreen Forest",
+  "MD: Mixed Deciduous Forest",
+  "MG: Mangrove Forest",
+  "PL: Forest Plantation",
+  "WL: Other wooded land",
+  " ",
+  "envir_stress: Environmental stress from Chave et al., 2014",
+  " ",
+  "Tree level",
+  "plot_id: Plot identifier",
+  "tree_id: Tree unique identifier",
+  "tree_no: Tree number in the plot",
+  "tree_dbh: Tree diameter at breast height (cm)",
+  "tree_pom: Tree point of measurement for DBH (m)",
+  "tree_height_top: Tree top height (m)",
+  "tree_height_bole: Tree bole height (m)",
+  "tree_dist: Tree distance to plot center (m)",       
+  "tree_azimuth: Tree azimuth from plot center (degree)",
+  "tree_health: Tree health code:",
+  "  - 1: Healthy",
+  "  - 2: Declining healthy",
+  "  - 3: Unhealthy",
+  "  - 4: Dying",
+  "  - 5: Dead",
+  "sp_id: Tree species identifier"           
+)
 
+write_lines(explanations, "results/mock-data/raw_metadata.txt")

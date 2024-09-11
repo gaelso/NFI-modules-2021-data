@@ -99,10 +99,11 @@ tree02tmp <- tree01 |>
     tree_health = case_when(
       !is.na(X64.HealthState)        ~ as.numeric(X64.HealthState),
       !is.na(Tree.Health)            ~ as.numeric(Tree.Health), ## CRI 
-      !is.na(condicionfitosanitaria) ~ as.numeric(condicionfitosanitaria), ## HND
-      !is.na(GRADO.COND.FITO)        ~ as.numeric(GRADO.COND.FITO), ## NIC 
+      !is.na(gradocondicionfito) ~ as.numeric(gradocondicionfito) + 1, ## HND: 0:3 to conv to 1:4 to match NFMA standard 
+      !is.na(GRADO.COND.FITO)        ~ as.numeric(GRADO.COND.FITO) + 1 , ## NIC : 0:3 to conv to 1:4 to match NFMA standard 
       TRUE ~ NA_real_
-    )
+    ),
+    tree_health = if_else(country %in% c("Comoros", "Congo"), tree_health + 1, tree_health) ## COG, COM, ranged 0:4 instead of 1:5
   ) |>
   dplyr::select(
     country, iso, plot_id, lus_no, tree_no, tree_dbh, tree_pom, tree_height_top, tree_height_bole, tree_height_me,

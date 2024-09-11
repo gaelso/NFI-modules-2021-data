@@ -10,7 +10,10 @@ wdsp    <- read_csv("results/mock-data/raw_wdsp.csv", show_col_types = FALSE)
 ano_plot <- read_csv("results/anonymization-codes/ano_plot.csv")
 
 ## Select country
+table(ano_plot$iso)
+
 sort(unique(ano_plot$iso))
+
 plot_ids <- ano_plot |> filter(iso == "COG") |> pull(raw_id)
 
 nrow(plot_ids)

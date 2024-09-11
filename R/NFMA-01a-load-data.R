@@ -38,7 +38,8 @@ sp_codes <- map_dfr(sp_codes  , read_csv, col_type = cols(.default = col_charact
 ## country 3 digits ISO code
 country_iso <- tibble(
   country = country_names,
-  iso = c("AGO", "BGD", "CMR", "COM", "COG", "CRI", "GMB", "GTM", "HND", "KEN", "KGZ", "LBN", "NIC", "PHL", "ZMB")
+  iso     = c("AGO", "BGD", "CMR", "COM", "COG", "CRI", "GMB", "GTM", "HND", "KEN", "KGZ", "LBN", "NIC", "PHL", "ZMB"),
+  region  = c("AF" , "AP" , "AF" , "AF" , "AF" , "LC" , "AF" , "LC" , "LC" , "AF" , "EU" , "NE" , "LC" , "AP" , "AF")
 )
 
 

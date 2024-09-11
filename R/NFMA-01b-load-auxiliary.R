@@ -20,7 +20,7 @@ if (!("gadm36_levels_shp" %in% list.files("data/GIS"))) {
   unlink("data/GIS/gadm36_levels_shp.zip")
 }
 
-sf_country <- st_read("data/GIS/gadm36_levels_shp/gadm36_0.shp")
+sf_country <- st_read("data/GIS/gadm36_levels_shp/gadm36_0.shp", quiet = TRUE)
 
 
 
@@ -39,11 +39,20 @@ if (!("gez2010" %in% list.files("data/GIS"))) {
   unlink("data/GIS/gez2010.zip")
 }
 
-sf_gez <- st_read("data/GIS/gez2010/gez_2010_wgs84.shp")
+if (!("gez_2010_wgs84.gpkg") %in% list.files("data/GIS")) {
+  
+  message("making GEZ shapefile valid...")
+  sf_gez  <- st_read("data/GIS/gez2010/gez_2010_wgs84.shp", quiet = TRUE)
+  sf_gez2 <- st_make_valid(sf_gez)
+  
+  write_sf(sf_gez2, "data/GIS/gez_2010_wgs84.gpkg")
+  rm(sf_gez, sf_gez2)
+  
+  message("...Done")
 
-st_is_valid(sf_gez)
-sf_gez2 <- st_make_valid(sf_gez)
+}
 
+sf_gez2 <- st_read("data/GIS/gez_2010_wgs84.gpkg", quiet = TRUE)
 
 
 ## --- Add Chave et al. 2014 Environment variable ---------------------------
@@ -90,11 +99,11 @@ if (!("GlobalWoodDensityDatabase.txt" %in% list.files("data/WD"))) {
 
 
 ## Load data
-cwdd <- readr::read_csv("data/WD/Cirad-wood-density-database.csv") |>
+cwdd <- readr::read_csv("data/WD/Cirad-wood-density-database.csv", show_col_types = F) |>
   dplyr::select(species_name = Taxa, continent = Continent, wd = Db) |>
   mutate(source = "CWDD")
 
-gwd  <- readr::read_tsv("data/WD/GlobalWoodDensityDatabase.txt") |>
+gwd  <- readr::read_tsv("data/WD/GlobalWoodDensityDatabase.txt", show_col_types = F) |>
   dplyr::select(species_name = Binomial, continent = Region, wd = WSG) |>
   mutate(source = "GWD")
 
