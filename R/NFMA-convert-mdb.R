@@ -26,7 +26,7 @@ if (isTRUE(test)) path_mdb <- list.files(path = "data/NFMA/mdb_files", pattern =
 # path_app  <- setdiff(path_mdb, path_data)
 
 ## Run extract_csv() for all files
-walk(.x = path_mdb, .f = extract_csv) 
+walk(.x = path_mdb, .f = extract_csv, .save_data = F) 
 
 
 ##
@@ -124,19 +124,20 @@ filename <- db_path %>% str_remove(pattern = ".*/") %>% str_remove(".mdb")
 write_file("", file = file.path(out_path, paste0("DB_name_", filename, ".txt")))
 
 Hmisc::mdb.get(db_path, tables = T)
-db_tmp <- mdb.get(db_path, table = "ARBOLES")
+db_tmp <- mdb.get(db_path, autodate = F)
 
 ## Save tables
-tt <- mdb.get(db_path, table = "UNIDADES_MUESTREOS") %>% rm_labels() %>% as_tibble()
+db_tmp[["UNIDADES_MUESTREOS"]] %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F1-Tract_spanish.csv"))
 db_tmp[["PARCELAS"]]    %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F2-Plot_spanish.csv"))
 db_tmp[["ARBOLES"]]    %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F3-Trees_spanish.csv"))
 db_tmp[["ESQUEMA_PARCELA_CUT"]] %>% rm_labels() %>% as_tibble() %>% write_csv(file = file.path(out_path, "F5-LUS_spanish.csv"))
 db_tmp[["CUT_TB"]] %>% rm_labels() %>% as_tibble() %>% 
   select(id = ID.CUT.TB,  lu = DESCRIPCION) %>%
   write_csv(file = file.path(out_path, "lu-codes_spanish.csv"))
-db_tmp[["ESPECIES"]] %>% rm_labels() %>% as_tibble() %>% 
+db_tmp[["ESPECIES"]] %>% rm_labels() %>% as_tibble() %>%
   select(sp_code = ID.ESPECIE,  sp_name = NOMBRE.CIENTIFICO) %>%
   write_csv(file = file.path(out_path, "species-codes.csv"))
 
 ## Remove temp objects
 rm(with_space)
+

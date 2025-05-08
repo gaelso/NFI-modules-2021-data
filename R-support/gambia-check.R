@@ -41,6 +41,8 @@ use_package <- function(.pkg_name) {
 
 use_package(tidyverse)
 use_package(sf)
+use_package(ggrepel)
+use_package(ggpubr)
 
 ## List for temporary objects
 tmp <- list()
@@ -54,7 +56,7 @@ init$country_name <- "Gambia"
 init$country_iso  <- "GMB"
 
 ## Create data from global analysis?
-init$run_extraction <- FALSE
+init$run_extraction <- F
 
 ## Paths / Create dir
 if (!init$country_name %in% list.dirs("data", full.names = F)) dir.create(paste0("data/", init$country_name))
@@ -118,16 +120,17 @@ if (init$run_extraction) {
 
 
 ##
-## Country analysis ####
+## Country analysis - GPS records ####
 ##
 
+## Read country files 
 tmp$files <- list.files(file.path("data", init$country_name), pattern = "\\.csv", full.names = T)
 tmp$names <- tmp$files |> str_remove(".*-") |> str_remove(".csv")
 ct <- map(tmp$files, read_csv, show_col_types = F)
 names(ct) <- tmp$names
 
-## Convert GMP plot GPS points to long table
-ct$plot_gpslatlon <- ct$plot_gps |>
+## Convert plot GPS points to long table
+ct$plot_gps_records <- ct$plot_gps |>
   pivot_longer(
     cols = starts_with("plot_gps"),
     names_to = c(".value", "location"),
@@ -136,85 +139,93 @@ ct$plot_gpslatlon <- ct$plot_gps |>
   arrange(tract_id, plot_id)
 
 ## Convert UTM to latlon
-ct$sf_plot_gps <- gmb_plot_gps124 |>
+ct$sf_plot_gps_records <- ct$plot_gps_records |>
   filter(!is.na(x), !is.na(y)) |>
   mutate(xx = x, yy = y) |>
   st_as_sf(coords = c("xx", "yy"), crs = 32628) |>
   st_transform(crs = 4326)
 
-gmb_plot_gps124_latlong <- sf_gmb_plot_gps124 |>
+ct$plot_gps_records_latlon <- ct$sf_plot_gps_records |>
   mutate(
-    lon = st_coordinates(sf_gmb_plot_gps124)[,1],
-    lat = st_coordinates(sf_gmb_plot_gps124)[,2]
+    lon = st_coordinates(ct$sf_plot_gps_records)[,1],
+    lat = st_coordinates(ct$sf_plot_gps_records)[,2]
   ) |>
   as_tibble() |>
   select(-geometry)
 
-ggplot(sf_gmb_plot_gps124) + 
+## Check
+ggplot(ct$sf_plot_gps_records) + 
   geom_sf(aes(color = location)) +
   theme_bw()
 
-write_csv(gmb_plot_gps124_latlong, "tract124_GPS.csv")
-st_write(sf_gmb_plot_gps124, "tract124_GPS.kml")
+## Save data
+write_csv(ct$sf_plot_gps_records, paste0("results/", init$country_name, "/", init$country_iso, "-plot-GPS-records.csv"))
+st_write(ct$sf_plot_gps_records, paste0("results/", init$country_name, "/", init$country_iso, "-plot-GPS-records.kml"))
 
 
-table(lus_gmb$lus)
+##
+## Country analysis - tree position ####
+##
 
-tt <- lus_gmb |> summarise(count = n(), .by = c(iso, plot_id))
+## Checks
+# table(ct$lus$lus)
+# 
+# tt <- ct$lus |> summarise(count = n(), .by = c(iso, plot_id))
+# 
+# table(tt$count)
+# 
+# length(unique(ct$lus$plot_id)) / 4
 
-table(tt$count)
+## For each cluster make tree location maps
+tmp$list_tract <- ct$tree |>
+  mutate(
+    tract_id = str_sub(plot_id, end = -2)
+  ) |>
+  pull(tract_id) |>
+  unique() |>
+  sort()
 
-length(unique(lus_gmb$plot_id)) / 4
+tmp$gg_tracts <- map(tmp$list_tract, function(x){
+  
+  tract_id <- tmp$plot_no |> filter(tract_id == x) |> pull(tract_id) |> unique()
+  
+  ct$tree |> 
+    filter(plot_id %in% paste0(x, 1:4)) |>
+    mutate(
+      plot_no = str_remove(plot_id, pattern = x),
+      lus_id = paste0(plot_id, "0", lus_no)
+    ) |>
+    left_join(tmp$lus, by = join_by(lus_id)) |>
+    ggplot(aes(tree_x, tree_y)) +
+    geom_point(aes(color = tree_species_name, shape = lus)) +
+    ggrepel::geom_text_repel(aes(label = paste0(tree_dbh, " cm")), min.segment.length = 0, size = 2) +
+    theme_bw() + 
+    coord_fixed(ratio = 1/2) +
+    facet_wrap(~plot_no, nrow = 1) + 
+    scale_y_continuous(breaks = 1:25 * 10) +
+    scale_x_continuous(breaks = c(-10, 0, 10), minor_breaks = c(-5, 0, 5), limits = c(-10, 10)) +
+    labs(
+      subtitle = paste0("Tree DBH for Tract ", tract_id),
+      color = "",
+      shape = "",
+      x = "X (m)",
+      y = "Y (m)",
+      caption = "Plot ratio y/x = 1/2"
+    )
+  
+})
 
+names(tmp$gg_tracts) <- tmp$list_tract
 
-gmb_plot124 <- gmb_plot |> filter(tract_id == "GMB_661124")
-gmb_lus124  <- gmb_lus |> filter(plot_id %in% c("GMB_6611241", "GMB_6611242", "GMB_6611243", "GMB_6611244"))
-gmb_tree124 <- gmb_tree |> filter(plot_id %in% c("GMB_6611241", "GMB_6611242", "GMB_6611243", "GMB_6611244"))
-
-table(gmb_tree124$plot_id)
-
-
-write_csv(gmb_tree124, "gmb_tree124.csv")
-
-gmb_tree124 |> 
-  filter(plot_id == "GMB_6611241") |>
-  ggplot(aes(tree_x, tree_y)) +
-  geom_point(aes(color = tree_species_code)) +
-  ggrepel::geom_text_repel(aes(label = tree_dbh)) +
-  xlim(-10, 10) +
-  theme_bw() + 
-  coord_fixed() +
-  labs(subtitle = "124/plot 1")
-
-
-gmb_tree124 |> 
-  filter(plot_id == "GMB_6611242") |>
-  ggplot(aes(tree_x, tree_y)) +
-  geom_point(aes(color = tree_species_code)) +
-  ggrepel::geom_text_repel(aes(label = tree_dbh)) +
-  xlim(-10, 10) +
-  theme_bw() + 
-  coord_fixed() +
-  labs(subtitle = "124/plot 2")
-
-gmb_tree124 |> 
-  filter(plot_id == "GMB_6611243") |>
-  ggplot(aes(tree_x, tree_y)) +
-  geom_point(aes(color = tree_species_code)) +
-  ggrepel::geom_text_repel(aes(label = tree_dbh)) +
-  xlim(-10, 10) +
-  theme_bw() + 
-  coord_fixed() +
-  labs(subtitle = "124/plot 3")
-
-gmb_tree124 |> 
-  filter(plot_id == "GMB_6611244") |>
-  ggplot(aes(tree_x, tree_y)) +
-  geom_point(aes(color = tree_species_code)) +
-  ggrepel::geom_text_repel(aes(label = tree_dbh)) +
-  xlim(-10, 10) +
-  theme_bw() + 
-  coord_fixed() +
-  labs(subtitle = "124/plot 4")
+## Write all plots
+walk(tmp$list_tract, function(x){
+  
+  ggsave(
+    plot = tmp$gg_tracts[[x]], 
+    filename = paste0("results/", init$country_name, "/", init$country_iso, "-tree-position-tract0-", x, ".png"),
+    height = 17, width = 14, units = "cm", dpi = 300
+    )
+  
+})
 
 

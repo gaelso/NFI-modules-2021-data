@@ -13,7 +13,7 @@ rm_labels <- function(x){
 ## !!! For testing only
 #.filepath <- path_mdb[23]
 
-extract_csv <- function(.filepath){
+extract_csv <- function(.filepath, .save_data = T){
   
   ## Checks
   stopifnot("Hmisc"   %in% installed.packages())
@@ -58,43 +58,56 @@ extract_csv <- function(.filepath){
   ## Save tables
   if (is_data) {
     
-    # ## --- Save data tables
-    # tabs <- c("F1-Tract", "F2-Plot", "F3-Trees", "F5-LUS")
-    # 
-    # walk(.x = tabs, .f = function(x) {
-    #   tt <- mydb[[x]] %>% rm_labels() %>% as_tibble()
-    #   write_csv(tt, file = file.path(new_path, paste0(x %>% str_replace("/", "_"), ".csv")))
-    # })
-    
+    ## --- Save data tables
+    if (.save_data) {
+      tabs <- c("F1-Tract", "F2-Plot", "F3-Trees", "F5-LUS")
+      walk(.x = tabs, .f = function(x) {
+        tt <- mydb[[x]] %>% rm_labels() %>% as_tibble()
+        write_csv(tt, file = file.path(new_path, paste0(x %>% str_replace("/", "_"), ".csv")))
+      })
+      
+    }
+
     ## --- Save species codes
     if (!(country %in% c("Cameroun", "Guatemala", "Kenya", "Kyrgyzstan", "Lebanon", "Philippines"))) {
       
-      tt  <- mydb[["C-Species"]] %>% rm_labels() %>% as_tibble() 
-      tt %>%
-        select(sp_code = Species.ID, sp_name = SpeciesDefaultScientific) %>%
-        write_csv(file = file.path(new_path, "species-codes.csv"))
+      if (country == "Gambia") {
+        
+        tt  <- mydb[["C-Species"]] %>% rm_labels() %>% as_tibble() 
+        tt %>%
+          select(sp_code = ID.SPECIES, sp_name = SpeciesDefaultScientific, sp_local = SpeciesDefaultCommonLOC) %>%
+          write_csv(file = file.path(new_path, "species-codes.csv"))
+        
+      } else {
+        
+        tt  <- mydb[["C-Species"]] %>% rm_labels() %>% as_tibble() 
+        tt %>%
+          select(sp_code = Species.ID, sp_name = SpeciesDefaultScientific) %>%
+          write_csv(file = file.path(new_path, "species-codes.csv"))
+        
+      }
       
-    } ## END IF species code
+    } ## END IF species code from 'data' MS ACCESS
     
   } else {
     
-    # ## --- Land use codes
-    # if (country %in% c("Lebanon", "Guatemala", "Cameroun", "Philippines")) {
-    # 
-    #   tt <- mydb[["C-LandUse/StandType"]] %>% rm_labels() %>% as_tibble()
-    #   tt %>%
-    #     select(id = LandUse.StandType.ID,  lu = LandUse.StandType.text.eng) %>%
-    #     write_csv(file = file.path(new_path, "lu-codes.csv"))
-    # 
-    # }  else {
-    # 
-    #   tt  <- mydb[["C-Codes"]] %>% rm_labels() %>% as_tibble()
-    #   tt %>%
-    #     filter(Variable.ID == 80) %>%
-    #     select(id = Code.ID,  lu = Code.text.eng) %>%
-    #     write_csv(file = file.path(new_path, "lu-codes.csv"))
-    # 
-    # } ## END IF LU Codes
+    ## --- Land use codes
+    if (country %in% c("Lebanon", "Guatemala", "Cameroun", "Philippines")) {
+
+      tt <- mydb[["C-LandUse/StandType"]] %>% rm_labels() %>% as_tibble()
+      tt %>%
+        select(id = LandUse.StandType.ID,  lu = LandUse.StandType.text.eng) %>%
+        write_csv(file = file.path(new_path, "lu-codes.csv"))
+
+    }  else {
+
+      tt  <- mydb[["C-Codes"]] %>% rm_labels() %>% as_tibble()
+      tt %>%
+        filter(Variable.ID == 80) %>%
+        select(id = Code.ID,  lu = Code.text.eng) %>%
+        write_csv(file = file.path(new_path, "lu-codes.csv"))
+
+    } ## END IF LU Codes
     
     ## --- Species codes from code lists
     if (country %in% c("Cameroun", "Kenya", "Kyrgyzstan", "Lebanon", "Philippines")) {
