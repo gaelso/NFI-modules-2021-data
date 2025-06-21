@@ -56,7 +56,7 @@ init$country_name <- "Gambia"
 init$country_iso  <- "GMB"
 
 ## Create data from global analysis?
-init$run_extraction <- F
+init$run_extraction <- T
 
 ## Paths / Create dir
 if (!init$country_name %in% list.dirs("data", full.names = F)) dir.create(paste0("data/", init$country_name))
@@ -80,7 +80,6 @@ if (init$run_extraction) {
   source('R/NFMA-02b-simplify-plot.R')
   source('R/NFMA-02c-simplify-lus.R')
   source('R/NFMA-02d-simplify-tree.R')
-  
   
   ct$tract <- tract02 |> filter(iso == init$country_iso)
   ct$plot  <- plot02  |> filter(iso == init$country_iso)
@@ -106,6 +105,26 @@ if (init$run_extraction) {
     ) |>
     mutate(crs = 32628)
   
+  names(ct)
+  ct$lus <- ct$lus |>
+    mutate(
+      tract_no = as.numeric(str_sub(plot_id, start = 8, end = 10)),
+      plot_no = as.numeric(str_sub(plot_id, -1)),
+      lus_class = case_when(
+        str_detect(lus, "open shrubs")     ~ "nonforest",
+        str_detect(lus, "closed shrubs")   ~ "nonforest",
+        str_detect(lus, "open natural grassland")     ~ "nonforest",
+        str_detect(lus, "closed natural grassland")   ~ "nonforest",
+        str_detect(lus, "open")            ~ "open forest",
+        str_detect(lus, "closed")          ~ "closed forest",
+        str_detect(lus, "mangrove forest") ~ "mangrove forest",
+        TRUE ~ "nonforest"
+      )
+    ) |>
+    select(iso, country, lus_id, tract_no, plot_no, lus_no, everything())
+
+  table(ct$lus$lus, ct$lus$lus_class)
+    
   ## Save GMD full data
   walk(names(ct), function(x){ write_csv(ct[[x]], paste0("data/", init$country_name,"/", init$country_iso  , "-", x, ".csv")) })
   
@@ -227,5 +246,6 @@ walk(tmp$list_tract, function(x){
     )
   
 })
+
 
 
