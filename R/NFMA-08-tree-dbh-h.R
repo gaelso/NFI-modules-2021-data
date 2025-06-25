@@ -4,7 +4,7 @@
 
 tree08 <- tree07 |>
   mutate(
-    tree_height_chave  = exp(0.893 - envir_stress + 0.760 * log(tree_dbh) - 0.0340 * (log(tree_dbh))^2),
+    tree_height_chave  = exp(0.243^2/2) * exp(0.893 - envir_stress + 0.760 * log(tree_dbh) - 0.0340 * (log(tree_dbh))^2),
     tree_height_ci     = 0.243 * tree_height_chave * 1.96,
     tree_height_valid  = if_else(abs(tree_height_chave - tree_height_top) < tree_height_ci, 1, 0),
     tree_height_cor    = if_else(tree_height_valid != 1 | is.na(tree_height_top), tree_height_chave, tree_height_top),

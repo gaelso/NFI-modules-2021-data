@@ -101,6 +101,7 @@ roots_class <- tibble(
 # freq(sp_root1)
 
 
+## + Country boundary ####
 
 
 ##
@@ -346,10 +347,7 @@ ceo_plot3 <- ceo_plot |>
   mutate(
     distance_ceo_nfma = distHaversine(c(center_lon, center_lat), c(nfma_lon, nfma_lat))
   ) |>
-  ungroup() |>
-  mutate(
-    
-  )
+  ungroup()
   
 ## Check outputs
 ceo_plot3_reduced <- ceo_plot3 |>
